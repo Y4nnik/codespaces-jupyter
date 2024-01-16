@@ -135,6 +135,7 @@ class MAIN:
                 self.game_over()
     def game_over(self):
         self.snake.reset()
+        
     
     def draw_grass(self):
         grass_color = (167,209,61)
@@ -162,6 +163,7 @@ class MAIN:
 pygame.init()
 cell_size = 40
 cell_number = 20
+pygame_state = "start"
 screen = pygame.display.set_mode((cell_number*cell_size, cell_number*cell_size))
 clock = pygame.time.Clock()
 running = True
@@ -169,6 +171,19 @@ apple = pygame.image.load('graphics/apple.png').convert_alpha()
 game_font = pygame.font.Font('PoetsenOne-Regular.ttf', 35) # create a font object
 
 main_game = MAIN()
+
+def draw_start_menu():
+    screen.fill((175,215,70))
+    main_game.draw_grass()
+    font = pygame.font.SysFont('arial', 40)
+    start_rect = pygame.Rect(cell_number*cell_size/2-100, cell_number*cell_size/2-100, 200, 200)
+    pygame.draw.rect(screen,(20,50,1), start_rect)
+    start_button = font.render('Start', True, (255, 255, 255))
+    title = font.render('Pysnake', True, (255, 255, 255))
+    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 100))
+    screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2))
+    pygame.display.update()
+
 
 SCREEN_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SCREEN_UPDATE, 150)
@@ -178,7 +193,7 @@ while running:
       if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-      if event.type == SCREEN_UPDATE:
+      if event.type == SCREEN_UPDATE and pygame_state == "game":
             main_game.update()
       if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
@@ -192,9 +207,14 @@ while running:
                     main_game.snake.direction = Vector2(-1,0)
             if event.key == pygame.K_RIGHT:
                 if main_game.snake.direction.x != -1:
-                    main_game.snake.direction = Vector2(1,0)      
+                    main_game.snake.direction = Vector2(1,0) 
+            if event.key == pygame.K_SPACE and pygame_state == "start":
+                pygame_state = "game"   
 
-   screen.fill((175,215,70)) # fill the screen with green 
-   main_game.draw_elements()
-   pygame.display.update()
+   if pygame_state == "start":
+        draw_start_menu()
+   if pygame_state == "game":
+        screen.fill((175,215,70)) # fill the screen with green 
+        main_game.draw_elements()
+        pygame.display.update()
    clock.tick(120)  # limits FPS to 60
