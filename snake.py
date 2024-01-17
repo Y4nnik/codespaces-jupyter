@@ -172,6 +172,9 @@ clock = pygame.time.Clock()
 running = True
 apple = pygame.image.load('graphics/apple.png').convert_alpha()
 sn = pygame.image.load('snake.png').convert_alpha()
+sn = pygame.transform.scale(sn, (200, 200))
+gosn = pygame.image.load('gameoversnake.png').convert_alpha()
+gosn = pygame.transform.scale(gosn, (200, 200))
 game_font = pygame.font.Font('PoetsenOne-Regular.ttf', 35) # create a font object
 score = 0
 main_game = MAIN()
@@ -185,24 +188,27 @@ def draw_start_menu():
     pygame.draw.rect(screen,(87,65,47), start_rect, 0, 10)
     start_button = font.render('Press "Space" to Start', True, (255, 255, 255))
     title = titlefont.render('Pysnake', True, (255, 255, 255))
-    snake_rect = pygame.Rect(100, 100, 200, 200)    
-    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 150))
+    snake_rect = pygame.Rect(start_rect.centerx-100, start_rect.centery-100, 180, 180)
+    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 180))
     screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2+100))
-    screen.blit(sn, (0,0)) # draw the fruit at the fruit_rect position
+    screen.blit(sn, snake_rect) # draw the fruit at the fruit_rect position
     pygame.display.update()
 
 def draw_game_over_menu():
     screen.fill((175,215,70))
     main_game.draw_grass()
     font = pygame.font.SysFont('arial', 40)
-    start_rect = pygame.Rect(cell_number*cell_size/2-200, cell_number*cell_size/2-200, 400, 400)
-    pygame.draw.rect(screen,(20,50,1), start_rect, 0, 10)
-    start_button = font.render('Press "Space" to Restart', True, (255, 255, 255))
-    title = font.render('Game over', True, (255, 255, 255))
     score_screen = font.render('Your Score: ' + str(score), True, (255, 255, 255))
+    titlefont = pygame.font.SysFont('arial', 60)
+    start_rect = pygame.Rect(cell_number*cell_size/2-200, cell_number*cell_size/2-200, 400, 400)
+    pygame.draw.rect(screen,(87,65,47), start_rect, 0, 10)
+    start_button = font.render('Press "Space" to Restart', True, (255, 255, 255))
+    title = titlefont.render('Game Over', True, (255, 255, 255))
+    snake_rect = pygame.Rect(start_rect.centerx-100, start_rect.centery-50, 180, 180)
     screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 180))
+    screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2+150))
+    screen.blit(gosn, snake_rect) # draw the fruit at the fruit_rect position
     screen.blit(score_screen, (cell_number*cell_size/2 - score_screen.get_width()/2, cell_number*cell_size/2 - 100))
-    screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2))
     pygame.display.update()
 
 SCREEN_UPDATE = pygame.USEREVENT
