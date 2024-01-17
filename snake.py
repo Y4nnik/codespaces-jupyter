@@ -85,13 +85,14 @@ class SNAKE:
         elif tail_relation == Vector2(0,-1): self.tail = self.tail_down
 
     def move_snake(self):
-        if self.new_block == True:
-            body_copy = self.body[:]
-            self.new_block = False
-        else:
-            body_copy = self.body[:-1] # create a copy of the body without the last element
-        body_copy.insert(0, body_copy[0]+self.direction)
-        self.body = body_copy[:]
+        if not self.direction == Vector2(0,0):
+            if self.new_block == True:
+                body_copy = self.body[:]
+                self.new_block = False
+            else:
+                body_copy = self.body[:-1] # create a copy of the body without the last element
+            body_copy.insert(0, body_copy[0]+self.direction)
+            self.body = body_copy[:]
     
     def add_block(self):
         self.new_block = True
@@ -134,8 +135,11 @@ class MAIN:
             if block == self.snake.body[0]:
                 self.game_over()
     def game_over(self):
+        global score
+        score = len(self.snake.body) - 3
         self.snake.reset()
-        
+        global pygame_state
+        pygame_state = "game_over"
     
     def draw_grass(self):
         grass_color = (167,209,61)
@@ -157,7 +161,6 @@ class MAIN:
         score_y = int(cell_size*cell_number - 40)
         score_rect = score_surface.get_rect(center = (score_x, score_y))
         apple_rect = apple.get_rect(midright = (score_rect.left, score_rect.centery))
-
         screen.blit(score_surface,score_rect)
         screen.blit(apple,apple_rect)
 pygame.init()
@@ -168,22 +171,39 @@ screen = pygame.display.set_mode((cell_number*cell_size, cell_number*cell_size))
 clock = pygame.time.Clock()
 running = True
 apple = pygame.image.load('graphics/apple.png').convert_alpha()
+sn = pygame.image.load('snake.png').convert_alpha()
 game_font = pygame.font.Font('PoetsenOne-Regular.ttf', 35) # create a font object
-
+score = 0
 main_game = MAIN()
 
 def draw_start_menu():
     screen.fill((175,215,70))
     main_game.draw_grass()
     font = pygame.font.SysFont('arial', 40)
-    start_rect = pygame.Rect(cell_number*cell_size/2-100, cell_number*cell_size/2-100, 200, 200)
-    pygame.draw.rect(screen,(20,50,1), start_rect)
-    start_button = font.render('Start', True, (255, 255, 255))
-    title = font.render('Pysnake', True, (255, 255, 255))
-    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 100))
-    screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2))
+    titlefont = pygame.font.SysFont('arial', 80)
+    start_rect = pygame.Rect(cell_number*cell_size/2-200, cell_number*cell_size/2-200, 400, 400)
+    pygame.draw.rect(screen,(87,65,47), start_rect, 0, 10)
+    start_button = font.render('Press "Space" to Start', True, (255, 255, 255))
+    title = titlefont.render('Pysnake', True, (255, 255, 255))
+    snake_rect = pygame.Rect(100, 100, 200, 200)    
+    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 150))
+    screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2+100))
+    screen.blit(sn, (0,0)) # draw the fruit at the fruit_rect position
     pygame.display.update()
 
+def draw_game_over_menu():
+    screen.fill((175,215,70))
+    main_game.draw_grass()
+    font = pygame.font.SysFont('arial', 40)
+    start_rect = pygame.Rect(cell_number*cell_size/2-200, cell_number*cell_size/2-200, 400, 400)
+    pygame.draw.rect(screen,(20,50,1), start_rect, 0, 10)
+    start_button = font.render('Press "Space" to Restart', True, (255, 255, 255))
+    title = font.render('Game over', True, (255, 255, 255))
+    score_screen = font.render('Your Score: ' + str(score), True, (255, 255, 255))
+    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 180))
+    screen.blit(score_screen, (cell_number*cell_size/2 - score_screen.get_width()/2, cell_number*cell_size/2 - 100))
+    screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2))
+    pygame.display.update()
 
 SCREEN_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SCREEN_UPDATE, 150)
@@ -203,13 +223,14 @@ while running:
                 if main_game.snake.direction.y != -1:
                     main_game.snake.direction = Vector2(0,1)
             if event.key == pygame.K_LEFT:
-                if main_game.snake.direction.x != 1:
+                if main_game.snake.direction.x != 1 and main_game.snake.direction != Vector2(0,0):
                     main_game.snake.direction = Vector2(-1,0)
             if event.key == pygame.K_RIGHT:
                 if main_game.snake.direction.x != -1:
                     main_game.snake.direction = Vector2(1,0) 
-            if event.key == pygame.K_SPACE and pygame_state == "start":
+            if event.key == pygame.K_SPACE and (pygame_state == "start" or pygame_state == "game_over"):
                 pygame_state = "game"   
+                main_game.snake.direction = Vector2(0,0)
 
    if pygame_state == "start":
         draw_start_menu()
@@ -217,4 +238,6 @@ while running:
         screen.fill((175,215,70)) # fill the screen with green 
         main_game.draw_elements()
         pygame.display.update()
+   if pygame_state == "game_over":
+        draw_game_over_menu()
    clock.tick(120)  # limits FPS to 60
