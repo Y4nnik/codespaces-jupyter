@@ -9,12 +9,27 @@ class FRUIT:
        self.y = random.randint(0, cell_number-1) # create a random y position
        self.pos = Vector2(self.x, self.y) # create a vector2 object with the x and y position
    def draw_fruit(self):
-       fruit_rect = pygame.Rect(int(self.pos.x*cell_size), int(self.pos.y*cell_size), cell_size, cell_size)    
-       screen.blit(apple, fruit_rect) # draw the fruit at the fruit_rect position
+       fruit_rect = pygame.Rect(int(self.pos.x*cell_size), int(self.pos.y*cell_size), cell_size, cell_size) 
+       if is_speed == True:
+           screen.blit(speedapple, fruit_rect)
+       elif is_golden == True:
+            screen.blit(goldenapple, fruit_rect)   
+       else:
+            screen.blit(apple, fruit_rect) # draw the fruit at the fruit_rect position
    def randomize(self):
        self.x = random.randint(0, cell_number-1) # create a random x position
        self.y = random.randint(0, cell_number-1) # create a random y position
        self.pos = Vector2(self.x, self.y) # create a vector2 object with the x and y position
+       chooser = random.randint(1, 10)
+       if chooser == 1 or chooser == 2:
+            global is_speed
+            is_speed = True
+       elif chooser == 3:
+            global is_golden
+            is_golden = True
+       else:
+            is_speed = False
+            is_golden = False
 class SNAKE:
     def __init__(self):
         self.body = [Vector2(5,10), Vector2(4,10), Vector2(3,10)]  
@@ -89,6 +104,8 @@ class SNAKE:
             if self.new_block == True:
                 body_copy = self.body[:]
                 self.new_block = False
+            elif is_golden_ate == True:
+                body_copy = self.body[:]
             else:
                 body_copy = self.body[:-1] # create a copy of the body without the last element
             body_copy.insert(0, body_copy[0]+self.direction)
@@ -119,11 +136,19 @@ class MAIN:
         self.fruit.draw_fruit()
         self.snake.draw_snake()
         self.draw_score()
-    
+
     def check_collision(self):
         if self.fruit.pos == self.snake.body[0]:
+            if is_speed == True:
+                global time
+                time = pygame.time.get_ticks()
+                self.snake.add_block()
+            elif is_golden == True:
+                global time2
+                time2 = pygame.time.get_ticks()
+            else:
+                self.snake.add_block()
             self.fruit.randomize()
-            self.snake.add_block()
             self.snake.play_crunch_sound()
         for block in self.snake.body[1:]:
             if block == self.fruit.pos:
@@ -139,6 +164,8 @@ class MAIN:
         score = len(self.snake.body) - 3
         self.snake.reset()
         global pygame_state
+        global is_speed
+        is_speed = False
         pygame_state = "game_over"
     
     def draw_grass(self):
@@ -164,19 +191,33 @@ class MAIN:
         screen.blit(score_surface,score_rect)
         screen.blit(apple,apple_rect)
 pygame.init()
+time = 0
+time2 = 0
+time_speed = 1000
+time_golden = 375
 cell_size = 40
 cell_number = 20
 pygame_state = "start"
 screen = pygame.display.set_mode((cell_number*cell_size, cell_number*cell_size))
 clock = pygame.time.Clock()
 running = True
+
 apple = pygame.image.load('graphics/apple.png').convert_alpha()
+speedapple = pygame.image.load('speedapple.png').convert_alpha()
+goldenapple = pygame.image.load('golden_apple.png').convert_alpha()
+
 sn = pygame.image.load('snake.png').convert_alpha()
 sn = pygame.transform.scale(sn, (200, 200))
 gosn = pygame.image.load('gameoversnake.png').convert_alpha()
 gosn = pygame.transform.scale(gosn, (200, 200))
 game_font = pygame.font.Font('PoetsenOne-Regular.ttf', 35) # create a font object
 score = 0
+
+is_speed = False
+is_speed_ate = False
+is_golden = False
+is_golden_ate = False
+
 main_game = MAIN()
 
 def draw_start_menu():
@@ -210,16 +251,26 @@ def draw_game_over_menu():
     screen.blit(gosn, snake_rect) # draw the fruit at the fruit_rect position
     screen.blit(score_screen, (cell_number*cell_size/2 - score_screen.get_width()/2, cell_number*cell_size/2 - 100))
     pygame.display.update()
-
 SCREEN_UPDATE = pygame.USEREVENT
-pygame.time.set_timer(SCREEN_UPDATE, 150)
-
+pygame.time.set_timer(SCREEN_UPDATE, 125)
+SCREEN_UPDATE2 = pygame.USEREVENT + 1
+pygame.time.set_timer(SCREEN_UPDATE2, 50)
 while running:
    for event in pygame.event.get():
+      if time + time_speed > pygame.time.get_ticks() and pygame.time.get_ticks() > 1000:
+                   is_speed_ate = True
+      else:
+                   is_speed_ate = False
+      if time2 + time_golden > pygame.time.get_ticks() and pygame.time.get_ticks() > 375:
+                     is_golden_ate = True
+      else:
+                     is_golden_ate = False
       if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
-      if event.type == SCREEN_UPDATE and pygame_state == "game":
+      if event.type == SCREEN_UPDATE and pygame_state == "game" and is_speed_ate == False:
+            main_game.update()
+      if event.type == SCREEN_UPDATE2 and pygame_state == "game" and is_speed_ate == True:
             main_game.update()
       if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
