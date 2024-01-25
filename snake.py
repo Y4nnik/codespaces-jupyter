@@ -297,4 +297,4 @@ while running:
         pygame.display.update()
    if pygame_state == "game_over":
         draw_game_over_menu()
-   clock.tick(120)  # limits FPS to 60
+   clock.tick(200)  # limits FPS to 60
