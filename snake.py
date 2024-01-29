@@ -2,6 +2,7 @@ import pygame
 import sys
 from pygame.math import Vector2 # import the vector2 class
 import random
+import shelve
 
 class FRUIT:
    def __init__(self):
@@ -212,6 +213,9 @@ gosn = pygame.image.load('gameoversnake.png').convert_alpha()
 gosn = pygame.transform.scale(gosn, (200, 200))
 game_font = pygame.font.Font('PoetsenOne-Regular.ttf', 35) # create a font object
 score = 0
+d = shelve.open('highscore.txt')
+highscore = d['highscore']
+d.close()
 
 is_speed = False
 is_speed_ate = False
@@ -239,17 +243,20 @@ def draw_game_over_menu():
     screen.fill((175,215,70))
     main_game.draw_grass()
     font = pygame.font.SysFont('arial', 40)
+    font2 = pygame.font.SysFont('arial', 25)
     score_screen = font.render('Your Score: ' + str(score), True, (255, 255, 255))
+    highscore_screen = font2.render('Highscore: ' + str(highscore), True, (255, 255, 255))
     titlefont = pygame.font.SysFont('arial', 60)
     start_rect = pygame.Rect(cell_number*cell_size/2-200, cell_number*cell_size/2-200, 400, 400)
     pygame.draw.rect(screen,(87,65,47), start_rect, 0, 10)
     start_button = font.render('Press "Space" to Restart', True, (255, 255, 255))
     title = titlefont.render('Game Over', True, (255, 255, 255))
     snake_rect = pygame.Rect(start_rect.centerx-100, start_rect.centery-50, 180, 180)
-    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 180))
+    screen.blit(title, (cell_number*cell_size/2 - title.get_width()/2, cell_number*cell_size/2 - 190))
     screen.blit(start_button, (cell_number*cell_size/2 - start_button.get_width()/2, cell_number*cell_size/2+150))
     screen.blit(gosn, snake_rect) # draw the fruit at the fruit_rect position
-    screen.blit(score_screen, (cell_number*cell_size/2 - score_screen.get_width()/2, cell_number*cell_size/2 - 100))
+    screen.blit(score_screen, (cell_number*cell_size/2 - score_screen.get_width()/2, cell_number*cell_size/2 - 120))
+    screen.blit(highscore_screen, (cell_number*cell_size/2 - highscore_screen.get_width()/2, cell_number*cell_size/2 - 80))
     pygame.display.update()
 SCREEN_UPDATE = pygame.USEREVENT
 pygame.time.set_timer(SCREEN_UPDATE, 125)
@@ -266,6 +273,9 @@ while running:
       else:
                      is_golden_ate = False
       if event.type == pygame.QUIT:
+            d = shelve.open('highscore.txt')
+            d['highscore'] = highscore
+            d.close()
             pygame.quit()
             sys.exit()
       if event.type == SCREEN_UPDATE and pygame_state == "game" and is_speed_ate == False:
@@ -296,5 +306,7 @@ while running:
         main_game.draw_elements()
         pygame.display.update()
    if pygame_state == "game_over":
+        if score > highscore:
+            highscore = score
         draw_game_over_menu()
    clock.tick(200)  # limits FPS to 60
