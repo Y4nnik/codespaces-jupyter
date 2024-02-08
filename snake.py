@@ -309,4 +309,5 @@ while running:
         if score > highscore:
             highscore = score
         draw_game_over_menu()
+    
    clock.tick(200)  # limits FPS to 60
